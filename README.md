@@ -1,7 +1,43 @@
-# Bank portal template
+# The North Bank portal (P663)
 
-Register the bank with the SharedBank operator. Set its bank ID, name, IFSC and branding in `src/bank-config.js`. Set the common HTTPS Worker URL in `src/cloudflare-config.js`, or set the repository variable `VITE_X42_API_URL`.
+Customer portal for The North Bank on the SharedBank test network. Built with React, Material UI and Vite.
+Money movement (balances, transfers, interbank) is handled by the shared SharedBank Worker; this portal only
+calls it. See `CHANGELOG.md` for what changed in the redesign.
 
-On Node.js 22 or newer, run `npm ci` and `npm run dev` to work locally. The portal uses the bank's Firebase test account and displays live synthetic balances from the Worker.
+## Run locally (Windows: use Command Prompt)
 
-Publish this folder to a GitHub repository and enable its GitHub Pages source with **GitHub Actions**. The supplied workflow deploys the `main` branch.
+Requires Node.js 22 or newer.
+
+```
+npm ci
+npm run dev      # opens on http://localhost:5173 (the Worker allows this port)
+npm test         # unit tests
+npm run build    # production build into dist/
+```
+
+If Vite starts on 5174 instead of 5173, another dev server is still running. Stop it first, or the Worker
+will refuse the connection.
+
+Running locally still talks to the live shared Worker. Signing in is safe; submitting a transfer creates a
+real test transfer on the network.
+
+## Pages
+
+| Route | Page |
+|---|---|
+| `#/login` | Sign in |
+| `#/` | Dashboard |
+| `#/transfer` | Send money (stepper) |
+| `#/history` | Transactions, filters, CSV export |
+
+## Do not edit
+
+These files belong to the SharedBank setup. Changing them can disconnect this bank from the network:
+`src/live-api.js`, `src/cloudflare-config.js`, `src/bank-config.js` (`id`, `ifsc`), `.x42-portal.json`,
+`.github/workflows/pages.yml`. Do not re-run `bank.sh portal --publish`: it regenerates this portal from the
+template and overwrites these changes.
+
+## Deploy
+
+Pushing to `main` deploys to GitHub Pages through `.github/workflows/pages.yml`. Work on a branch and merge
+to `main` only when you are ready to publish.

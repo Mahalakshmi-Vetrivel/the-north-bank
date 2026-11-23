@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.*
+!.env.example
+# Firebase service-account keys must NEVER be committed
+*serviceAccount*.json
+*-firebase-adminsdk-*.json
+secrets/

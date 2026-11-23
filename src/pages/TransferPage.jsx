@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import {
   Alert, Box, Button, Card, CardContent, Divider, MenuItem, Stack, Step, StepLabel, Stepper, TextField,
   ToggleButton, ToggleButtonGroup, Typography,
@@ -24,11 +24,12 @@ function Row({ label, value }) {
 
 export default function TransferPage() {
   const { bank, data, directory, loaded, send } = useBank();
+  const payee = useLocation().state?.payee; // set by Saved payees → "Send money" (only pre-fills the form)
   const [step, setStep] = useState(0);
-  const [type, setType] = useState('interbank');
+  const [type, setType] = useState(payee && payee.ifsc === bank.ifsc ? 'internal' : 'interbank');
   const [from, setFrom] = useState('');
-  const [destination, setDestination] = useState('');
-  const [number, setNumber] = useState('');
+  const [destination, setDestination] = useState(payee && payee.ifsc !== bank.ifsc ? payee.ifsc : '');
+  const [number, setNumber] = useState(payee?.accountNumber || '');
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);

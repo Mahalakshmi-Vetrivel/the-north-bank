@@ -8,6 +8,7 @@ export function fakeDb() {
     async get() { return snap(`${collection}/${id}`); },
     async set(data) { store.set(`${collection}/${id}`, structuredClone(data)); },
     async create(data) { if (store.has(`${collection}/${id}`)) throw new Error('ALREADY_EXISTS'); store.set(`${collection}/${id}`, structuredClone(data)); },
+    async delete() { store.delete(`${collection}/${id}`); },
     async update(patch) { const key = `${collection}/${id}`; if (!store.has(key)) throw new Error('NOT_FOUND'); store.set(key, { ...store.get(key), ...patch }); },
   });
   const snap = path => ({ exists: store.has(path), id: path.split('/')[1], data: () => structuredClone(store.get(path)) });
@@ -60,6 +61,8 @@ export function fakeAuth() {
     },
     async updateUser(uid, patch) { users.set(uid, { ...users.get(uid), ...patch }); },
     async deleteUser(uid) { users.delete(uid); },
+    // Test tokens look like "tok:<uid>:<email>".
+    async verifyIdToken(token) { const [kind, uid, email] = String(token).split(':'); if (kind !== 'tok' || !uid) throw new Error('bad token'); return { uid, email }; },
   };
 }
 

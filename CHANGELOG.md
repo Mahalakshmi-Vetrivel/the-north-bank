@@ -34,3 +34,7 @@ endpoints (`POST /banks/P663/sign-in`, `GET /banks/P663/dashboard`, `POST /banks
 - New `server/` (Express + firebase-admin + nodemailer), isolated `nb_*` collections.
 - New pages: Register, Application status, Admin (KYC review, limits, e-mails & audit).
 - Soft transfer-limit check in the Transfer page. Shared Worker/config untouched.
+
+## Portfolio, saved payees and loans
+- Portfolio page (read-only), Saved payees (own `nb_beneficiaries`), Loans (apply + admin review in `nb_loans`, no payout).
+- "Send money" from a saved payee only pre-fills the existing transfer form; the transfer logic is unchanged.

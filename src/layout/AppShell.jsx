@@ -9,6 +9,9 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import DashboardIcon from '@mui/icons-material/SpaceDashboardOutlined';
 import SendIcon from '@mui/icons-material/SendOutlined';
 import ReceiptIcon from '@mui/icons-material/ReceiptLongOutlined';
+import PieIcon from '@mui/icons-material/PieChartOutline';
+import PeopleIcon from '@mui/icons-material/PeopleAltOutlined';
+import LoanIcon from '@mui/icons-material/RequestQuoteOutlined';
 import HubIcon from '@mui/icons-material/HubOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -22,6 +25,9 @@ export const customerNav = [
   { to: '/', label: 'Dashboard', icon: <DashboardIcon /> },
   { to: '/transfer', label: 'Send money', icon: <SendIcon /> },
   { to: '/history', label: 'Transactions', icon: <ReceiptIcon /> },
+  { to: '/portfolio', label: 'Portfolio', icon: <PieIcon /> },
+  { to: '/payees', label: 'Saved payees', icon: <PeopleIcon /> },
+  { to: '/loans', label: 'Loans', icon: <LoanIcon /> },
 ];
 
 function Brand({ bank }) {

@@ -35,3 +35,11 @@ describe('CSV export', () => {
     expect(toCsv(['a', 'b'], [['x"y', '=SUM(A1)']])).toBe('"a","b"\r\n"x""y","\'=SUM(A1)"');
   });
 });
+
+import { emiMinor } from '../src/loan.js';
+describe('loan helper', () => {
+  it('matches the server EMI (INR 50,000, 12 months, 10%)', () => {
+    expect(emiMinor(5_000_000, 12)).toBeGreaterThan(439_000);
+    expect(emiMinor(5_000_000, 12)).toBeLessThan(440_500);
+  });
+});

@@ -27,3 +27,11 @@ Only new documents in `accounts` and `ledger_entries` are created, on approval.
    - `/#/register` customer application, `/#/status` track it, `/#/admin` admin console.
 
 The frontend talks to `http://localhost:8787` (override with `VITE_NB_API_URL`).
+
+## Customer extras (saved payees, loans)
+- Routes `/api/me/beneficiaries` and `/api/me/loans` need the customer's sign-in token
+  (`Authorization: Bearer <token>`); the server checks it with Firebase (`verifyIdToken`).
+  If the shared Worker's sign-in token is not a Firebase ID token, these routes answer 401 and the
+  pages show "could not be verified" (nothing else breaks).
+- Own collections only: `nb_beneficiaries`, `nb_loans`. A loan "approval" is a decision + e-mail; **no money is credited**.
+- Admin: the **Loans** tab in `/#/admin`.

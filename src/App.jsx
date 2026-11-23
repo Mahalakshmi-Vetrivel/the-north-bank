@@ -9,6 +9,9 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import TransferPage from './pages/TransferPage';
 import HistoryPage from './pages/HistoryPage';
+import PortfolioPage from './pages/PortfolioPage';
+import PayeesPage from './pages/PayeesPage';
+import LoansPage from './pages/LoansPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PublicLayout from './layout/PublicLayout';
 import RegisterPage from './pages/RegisterPage';
@@ -49,6 +52,9 @@ export default function App({ bank, switchUrl }) {
             <Route index element={<DashboardPage />} />
             <Route path="transfer" element={<TransferPage />} />
             <Route path="history" element={<HistoryPage />} />
+            <Route path="portfolio" element={<PortfolioPage />} />
+            <Route path="payees" element={<PayeesPage />} />
+            <Route path="loans" element={<LoansPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

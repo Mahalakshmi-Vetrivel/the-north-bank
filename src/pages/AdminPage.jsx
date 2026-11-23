@@ -209,6 +209,66 @@ function Activity({ token, onAuthError }) {
   </Stack>;
 }
 
+function LoansAdmin({ token, onAuthError, notify }) {
+  const [status, setStatus] = useState('PENDING');
+  const [rows, setRows] = useState(null);
+  const [error, setError] = useState('');
+  const [open, setOpen] = useState(null);
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState('');
+  const load = useCallback(() => {
+    nbApi('/admin/loans?status=' + status, { token }).then(value => { setRows(value.rows); setError(''); })
+      .catch(failure => { if (failure.status === 401) onAuthError(); else setError(failure.message); });
+  }, [token, status, onAuthError]);
+  useEffect(load, [load]);
+  async function decide(decision) {
+    setError('');
+    if (decision === 'REJECT' && reason.trim().length < 3) return setError('Enter a reason for rejecting.');
+    setBusy(decision);
+    try {
+      await nbApi('/admin/loans/' + encodeURIComponent(open.loanId), { method: 'PATCH', token, data: { decision, reason } });
+      notify('Loan ' + open.loanId + ': ' + decision.toLowerCase() + ' recorded (no money moved).');
+      setOpen(null); setReason(''); load();
+    } catch (failure) { if (failure.status === 401) onAuthError(); else setError(failure.message); }
+    finally { setBusy(''); }
+  }
+  return <Card>
+    <Stack direction="row" sx={{ p: 2 }}>
+      <TextField size="small" select label="Status" value={status} onChange={e => setStatus(e.target.value)} sx={{ minWidth: 160 }}>
+        {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map(value => <MenuItem key={value} value={value}>{value === 'ALL' ? 'All statuses' : value}</MenuItem>)}
+      </TextField>
+    </Stack>
+    {error && !open && <Alert severity="error" sx={{ mx: 2, mb: 2 }}>{error}</Alert>}
+    {!rows ? <LinearProgress /> : !rows.length ? <EmptyState title="No loan applications" text="Try another status." /> : <TableContainer><Table size="small">
+      <TableHead><TableRow><TableCell>Applicant</TableCell><TableCell>Amount</TableCell><TableCell>Tenure</TableCell><TableCell>Applied (IST)</TableCell><TableCell>Status</TableCell><TableCell /></TableRow></TableHead>
+      <TableBody>{rows.map(row => <TableRow key={row.loanId} hover>
+        <TableCell><Typography sx={{ fontWeight: 650 }}>{row.applicantEmail}</Typography><Typography variant="caption" color="text.secondary">{row.loanId} · {row.accountId}</Typography></TableCell>
+        <TableCell>{money(row.amountMinor)}</TableCell><TableCell>{row.tenureMonths} months</TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>{time(row.createdAt)}</TableCell><TableCell><StatusPill status={row.status} /></TableCell>
+        <TableCell align="right"><Button size="small" onClick={() => { setOpen(row); setReason(''); setError(''); }}>Review</Button></TableCell>
+      </TableRow>)}</TableBody></Table></TableContainer>}
+    <Dialog open={Boolean(open)} onClose={() => !busy && setOpen(null)} fullWidth maxWidth="sm">
+      {open && <><DialogTitle>Loan {open.loanId} <StatusPill status={open.status} /></DialogTitle>
+        <DialogContent dividers>
+          {[['Applicant', open.applicantEmail], ['Account', open.accountId], ['Amount', money(open.amountMinor)], ['Tenure', open.tenureMonths + ' months'],
+            ['Rate', open.interestRatePercent + '% a year (demo)'], ['Estimated EMI', money(open.emiMinor)], ['Purpose', open.purpose]].map(([label, value]) =>
+            <Stack key={label} direction="row" sx={{ justifyContent: 'space-between', py: 0.75 }} spacing={2}>
+              <Typography color="text.secondary" variant="body2">{label}</Typography><Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'right' }}>{value}</Typography></Stack>)}
+          <Alert severity="info" sx={{ mt: 2 }}>Approving records the decision and e-mails the customer. No money is credited to the account.</Alert>
+          {open.status === 'PENDING' && <TextField fullWidth label="Reason (needed to reject)" value={reason} onChange={e => setReason(e.target.value)} sx={{ mt: 2 }} />}
+          {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(null)} disabled={Boolean(busy)}>Close</Button>
+          {open.status === 'PENDING' && <>
+            <Button color="error" onClick={() => decide('REJECT')} disabled={Boolean(busy)}>{busy === 'REJECT' ? 'Rejecting…' : 'Reject'}</Button>
+            <Button variant="contained" color="success" onClick={() => decide('APPROVE')} disabled={Boolean(busy)}>{busy === 'APPROVE' ? 'Approving…' : 'Approve'}</Button>
+          </>}
+        </DialogActions></>}
+    </Dialog>
+  </Card>;
+}
+
 export default function AdminPage() {
   const [session, setSession] = useState(() => readStorage(sessionStorage, tokenKey, null));
   const [tab, setTab] = useState('overview');
@@ -222,11 +282,12 @@ export default function AdminPage() {
       action={<Button variant="outlined" onClick={async () => { try { await nbApi('/admin/logout', { method: 'POST', token: session.token, data: {} }); } catch { /* ignore */ } signOut(); }}>Sign out</Button>} />
     {note && <Alert severity="success" onClose={() => setNote('')} sx={{ mb: 2 }}>{note}</Alert>}
     <Tabs value={tab} onChange={(_, value) => { setTab(value); setNote(''); }} variant="scrollable" sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}>
-      <Tab value="overview" label="Overview" /><Tab value="applications" label="KYC applications" /><Tab value="limits" label="Transfer limits" /><Tab value="activity" label="Emails & audit" />
+      <Tab value="overview" label="Overview" /><Tab value="applications" label="KYC applications" /><Tab value="limits" label="Transfer limits" /><Tab value="loans" label="Loans" /><Tab value="activity" label="Emails & audit" />
     </Tabs>
     {tab === 'overview' && <Overview {...props} />}
     {tab === 'applications' && <Applications {...props} />}
     {tab === 'limits' && <Limits {...props} />}
+    {tab === 'loans' && <LoansAdmin {...props} />}
     {tab === 'activity' && <Activity {...props} />}
   </>;
 }

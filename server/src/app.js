@@ -4,6 +4,7 @@ import { HttpError } from './errors.js';
 import { createAdminAuth } from './adminAuth.js';
 import { validateDecision, validateLimits, validateRegistration, OPENING_DEPOSIT_MINOR } from './validate.js';
 import { APPLICATIONS, AUDIT, OUTBOX, decideApplication } from './decide.js';
+import { registerExtras } from './extras.js';
 
 const LIMITS = 'nb_limits';
 const wrap = handler => (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
@@ -24,7 +25,7 @@ export function createApp({ db, auth, mailer, config }) {
   app.use(express.json({ limit: '20kb' }));
   app.use(cors({
     origin(origin, callback) { callback(null, !origin || config.allowedOrigins.includes(origin)); },
-    methods: ['GET', 'POST', 'PATCH'], allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'], allowedHeaders: ['Content-Type', 'Authorization'],
   }));
   app.use((_req, res, next) => { res.set('X-Content-Type-Options', 'nosniff'); res.set('Cache-Control', 'no-store'); next(); });
 
@@ -149,6 +150,8 @@ export function createApp({ db, auth, mailer, config }) {
   });
   app.get('/api/admin/audit', admin.require, recent(AUDIT));
   app.get('/api/admin/outbox', admin.require, recent(OUTBOX));
+
+  registerExtras(app, { db, auth, mailer, config, admin, wrap });
 
   app.use((_req, _res, next) => next(new HttpError(404, 'Not found.', 'NOT_FOUND')));
   // eslint-disable-next-line no-unused-vars
